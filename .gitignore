@@ -1,0 +1,11 @@
+# Ignore all __pycache__ directories
+**/__pycache__/
+
+# Optional: Ignore .env and venv
+.env
+venv/
+
+# Python cache files
+*.pyc
+*.pyo
+*.pyd
