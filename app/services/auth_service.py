@@ -3,7 +3,7 @@ from schemas.otp import SendOTPRequest, VerifyOTPRequest
 from constants.access_history import AccessStatus
 from schemas.user import UserLogin
 from crud import user as user_crud, otp as otp_crud, access_history
-from core.security import get_password_hash, verify_password, create_access_token
+from core.security import create_refresh_token, get_password_hash, verify_password, create_access_token
 from external.sms_call_service import send_sms_or_call
 
 
@@ -27,7 +27,13 @@ def verify_otp_and_signup(db, request: VerifyOTPRequest):
     hashed = get_password_hash(password)
     user = user_crud.update_user_credentials(db, user, username, hashed)
     # send_sms_or_call(request.mobile_number, f"Username: {username}, Password: {password}")
-    return create_access_token({"sub": str(user.id), "role": user.role})
+    access_data = {"sub": str(user.id), "role": user.role}
+    # return create_access_token({"sub": str(user.id), "role": user.role})
+    return {
+        "access_token": create_access_token(access_data),
+        "refresh_token": create_refresh_token(access_data)
+    }
+
 
 def login_user(db, login: UserLogin):
     user = user_crud.get_user_by_username(db, login.username)
@@ -36,4 +42,9 @@ def login_user(db, login: UserLogin):
         access_history.create_access_history(db, login.username, login_hashed, AccessStatus.FAILED.value)
         raise Exception("Invalid credentials")
     access_history.create_access_history(db, login.username, login_hashed, AccessStatus.SUCCESSFUL.value)
-    return create_access_token({"sub": str(user.id), "role": user.role})
+    access_data = {"sub": str(user.id), "role": user.role}
+    # return create_access_token({"sub": str(user.id), "role": user.role})
+    return {
+        "access_token": create_access_token(access_data),
+        "refresh_token": create_refresh_token(access_data)
+    }
