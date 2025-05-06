@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.models.user import User
+from models.user import User
 
 def get_user_by_mobile(db: Session, mobile_number: str):
     return db.query(User).filter(User.mobile_number == mobile_number).first()
@@ -21,7 +21,7 @@ def update_user_credentials(db: Session, user: User, username: str, hashed_passw
     db.refresh(user)
     return user
 from sqlalchemy.orm import Session
-from app.models.user import User
+from models.user import User
 
 def get_user_by_mobile(db: Session, mobile_number: str):
     return db.query(User).filter(User.mobile_number == mobile_number).first()

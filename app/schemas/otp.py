@@ -8,5 +8,6 @@ class VerifyOTPRequest(BaseModel):
     otp_code: str
 
 class Token(BaseModel):
+    detail: str
     access_token: str
     token_type: str = "bearer"
