@@ -1,7 +1,7 @@
 import random, string
 from schemas.otp import SendOTPRequest, VerifyOTPRequest
 from constants.access_history import AccessStatus
-from schemas.user import UserLogin
+from schemas.user import UserLogin, UserLogout
 from crud import user as user_crud, otp as otp_crud, access_history
 from core.security import create_refresh_token, get_password_hash, verify_password, create_access_token
 from external.sms_call_service import send_sms_or_call
@@ -34,6 +34,11 @@ def verify_otp_and_signup(db, request: VerifyOTPRequest):
         "refresh_token": create_refresh_token(access_data)
     }
 
+def verify_otp(db, request: VerifyOTPRequest):
+    if not otp_crud.verify_otp(db, request.mobile_number, request.otp_code):
+        raise Exception("Invalid OTP")
+    return True
+
 
 def login_user(db, login: UserLogin):
     user = user_crud.get_user_by_username(db, login.username)
@@ -48,3 +53,16 @@ def login_user(db, login: UserLogin):
         "access_token": create_access_token(access_data),
         "refresh_token": create_refresh_token(access_data)
     }
+
+def logout_user(db, login: UserLogout):
+    try:
+        user = user_crud.get_user_by_username(db, login.username)
+        # login_hashed = get_password_hash(user.password)
+        if not user:
+            return False
+        access_history.create_access_history(db, login.username, None, AccessStatus.LOGOUT.value)
+        return True
+    except Exception as e:
+        print(e)
+        return False
+
