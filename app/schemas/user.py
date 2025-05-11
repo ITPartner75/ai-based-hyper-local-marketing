@@ -8,7 +8,8 @@ class UserLogin(BaseModel):
     password: str
 
 class UserCreate(BaseModel):
-    username: str
+    first_name: str
+    last_name: str
     password: str
     mobile_number: str
 

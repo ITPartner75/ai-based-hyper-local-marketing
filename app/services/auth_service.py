@@ -66,3 +66,7 @@ def logout_user(db, login: UserLogout):
         print(e)
         return False
 
+def send_username_password(db, mobile_number: str, username: str):
+    message = f"Dear User,\n Your username is {username}.\n Regards,\n CLICKSEEK DIGITAL."
+    send_sms_or_call(mobile_number, message)
+    return {"message": "Username sent"}

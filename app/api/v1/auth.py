@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
+from crud.otp import check_if_mobile_number_verified
 from core.security import create_access_token, create_refresh_token, decode_token, get_password_hash
 from schemas.otp import SendOTPRequest, VerifyOTPRequest, Token
 from schemas.user import UserLogin, UserCreate, UserLogout
@@ -54,15 +55,15 @@ def login_route(request: UserLogin, db: Session = Depends(get_db)):
     
 @router.post("/create-credentials")
 def create_credentials(data: UserCreate, db: Session = Depends(get_db)):
-    user = user_crud.get_user_by_mobile(db, data.mobile_number)
-    if not user:
+    verified = check_if_mobile_number_verified(db, data.mobile_number)
+    if not verified:
         raise HTTPException(status_code=404, detail="Mobile not found or OTP not verified")
 
     # if user.hashed_password:
     #     raise HTTPException(status_code=400, detail="Credentials already set")
 
     hashed_pw = get_password_hash(data.password)
-    user_crud.update_user_credentials(db, user, data.username, hashed_pw)
+    user = user_crud.create_user(db, hashed_pw, data)
 
     access_token = create_access_token({"sub": user.username})
     refresh_token = create_refresh_token({"sub": user.username})

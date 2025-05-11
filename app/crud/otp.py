@@ -22,3 +22,14 @@ def verify_otp(db: Session, mobile_number: str, otp_code: str):
         db.commit()
         return True
     return False
+
+
+def check_if_mobile_number_verified(db: Session, mobile_number: str):
+    verified = db.query(OTPAttempt).filter(
+        OTPAttempt.mobile_number == mobile_number,
+        OTPAttempt.is_verified == True,
+        OTPAttempt.created_at >= datetime.datetime.utcnow() - datetime.timedelta(minutes=10)
+    ).first()
+    if verified:
+        return True
+    return False
