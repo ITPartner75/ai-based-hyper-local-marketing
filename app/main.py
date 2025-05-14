@@ -1,9 +1,9 @@
 import uvicorn
 from fastapi import FastAPI
-from db.session import engine
-from db.base import Base  # This includes your models
-from api.v1.auth import router as auth_router
-from api.v1.business import router as business_router
+from app.db.session import engine
+from app.db.base import Base  # This includes your models
+from app.api.v1.auth import router as auth_router
+from app.api.v1.business import router as business_router
 
 
 app = FastAPI()
