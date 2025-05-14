@@ -11,8 +11,7 @@ class Settings(BaseSettings):
     POSTGRES_SERVER: str = os.getenv("POSTGRES_SERVER")
     POSTGRES_PORT: str = os.getenv("POSTGRES_PORT")
     POSTGRES_DB: str = os.getenv("POSTGRES_DB")
-    DATABASE_URL: str = ""
-    # DATABASE_URL: str = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}:{POSTGRES_PORT}/{POSTGRES_DB}"
+    DATABASE_URL: str = os.getenv("DATABASE_URL")
     SECRET_KEY: str = os.getenv("SECRET_KEY")
     ALGORITHM: str = os.getenv("ALGORITHM")
     otp_username: str = os.getenv("OTP_USERNAME")
@@ -24,5 +23,3 @@ class Settings(BaseSettings):
         env_file = ".env"
 
 settings = Settings()
-DATABASE_URL = f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_SERVER}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
-settings.DATABASE_URL = DATABASE_URL
