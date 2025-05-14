@@ -9,3 +9,4 @@ python-jose
 requests
 loguru
 twilio
+pydantic-settings
