@@ -10,3 +10,4 @@ requests
 loguru
 twilio
 pydantic-settings
+sqlalchemy==2.0.40
