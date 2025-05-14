@@ -3,7 +3,7 @@ from app.schemas.otp import SendOTPRequest, VerifyOTPRequest
 from app.constants.access_history import AccessStatus
 from app.schemas.user import UserLogin, UserLogout
 from app.crud import user as user_crud, otp as otp_crud, access_history
-from core.security import create_refresh_token, get_password_hash, verify_password, create_access_token
+from app.core.security import create_refresh_token, get_password_hash, verify_password, create_access_token
 from app.external.sms_call_service import send_sms_or_call
 from app.exceptions.auth import InvalidCredentials, UserNotFound
 
