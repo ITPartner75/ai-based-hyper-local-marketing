@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from models.access_history import AccessHistory
+from app.models.access_history import AccessHistory
 
 def create_access_history(db: Session, mobile_number: str, hashed_password: str, access_status: int):
     try:

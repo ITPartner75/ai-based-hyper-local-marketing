@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from fastapi import HTTPException, Depends, status
 # from fastapi.security import OAuth2PasswordBearer
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from core.config import settings
+from app.core.config import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 bearer_scheme = HTTPBearer()

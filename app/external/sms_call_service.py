@@ -1,6 +1,6 @@
 import random
 import traceback
-from core.config import settings
+from app.core.config import settings
 from loguru import logger
 from fastapi import HTTPException
 from twilio.rest import Client

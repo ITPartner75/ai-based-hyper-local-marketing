@@ -1,5 +1,5 @@
 from sqlalchemy import Boolean, Column, Integer, String, DateTime, ForeignKey
-from db.base import Base
+from app.db.base import Base
 import datetime
 
 class Business(Base):

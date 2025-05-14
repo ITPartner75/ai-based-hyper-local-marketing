@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from db.base import get_db
-from core.security import get_current_user
-from schemas.business import BusinessCreate, BusinessUpdate, BusinessOut
+from app.db.base import get_db
+from app.core.security import get_current_user
+from app.schemas.business import BusinessCreate, BusinessUpdate, BusinessOut
 # from schemas.combined_details import MediaCreate, ContactCreate, BusinessDetailsCreate
-from crud import business as business_crud
+from app.crud import business as business_crud
 
 router = APIRouter()
 

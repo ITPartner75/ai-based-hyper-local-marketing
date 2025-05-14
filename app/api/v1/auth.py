@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
-from crud.otp import check_if_mobile_number_verified
-from core.security import create_access_token, create_refresh_token, decode_token, get_password_hash
-from schemas.otp import SendOTPRequest, VerifyOTPRequest, Token
-from schemas.user import UserLogin, UserCreate, UserLogout
-from services.auth_service import send_otp, verify_otp_and_signup, verify_otp, login_user, logout_user
-from crud import user as user_crud
-from db.base import get_db
-from exceptions.auth import UserNotFound, InvalidCredentials
+from app.crud.otp import check_if_mobile_number_verified
+from app.core.security import create_access_token, create_refresh_token, decode_token, get_password_hash
+from app.schemas.otp import SendOTPRequest, VerifyOTPRequest, Token
+from app.schemas.user import UserLogin, UserCreate, UserLogout
+from app.services.auth_service import send_otp, verify_otp_and_signup, verify_otp, login_user, logout_user
+from app.crud import user as user_crud
+from app.db.base import get_db
+from app.exceptions.auth import UserNotFound, InvalidCredentials
 
 
 router = APIRouter()

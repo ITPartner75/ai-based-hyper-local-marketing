@@ -1,6 +1,6 @@
 # app/crud/otp.py
 from sqlalchemy.orm import Session
-from models.otp_attempt import OTPAttempt
+from app.models.otp_attempt import OTPAttempt
 import datetime
 
 def create_otp_attempt(db: Session, mobile_number: str, otp_code: str):

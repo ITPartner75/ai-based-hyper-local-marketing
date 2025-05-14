@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from models.business_details import Business
+from app.models.business_details import Business
 
 def create_business(db: Session, user_id: int, data):
     business = Business(user_id=user_id, **data.dict())

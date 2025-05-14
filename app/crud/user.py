@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from schemas.user import UserCreate
-from models.user import User
+from app.schemas.user import UserCreate
+from app.models.user import User
 
 def get_user_by_mobile(db: Session, mobile_number: str):
     return db.query(User).filter(User.mobile_number == mobile_number).first()

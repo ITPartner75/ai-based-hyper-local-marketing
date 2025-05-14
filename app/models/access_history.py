@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, DateTime
-from db.base import Base
+from app.db.base import Base
 import datetime
 
 class AccessHistory(Base):
