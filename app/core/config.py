@@ -1,21 +1,28 @@
 import os
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
+from pydantic_settings import BaseSettings
 
-load_dotenv()
+# load_dotenv()
 
-class Settings:
+class Settings(BaseSettings):
     PROJECT_NAME: str = "Mobile OTP Auth"
-    POSTGRES_USER: str = os.getenv("POSTGRES_USER", "postgres")
-    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "1234")
-    POSTGRES_SERVER: str = os.getenv("POSTGRES_SERVER", "localhost")
-    POSTGRES_PORT: str = os.getenv("POSTGRES_PORT", 5432)
-    POSTGRES_DB: str = os.getenv("POSTGRES_DB", "database")
-    DATABASE_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}:{POSTGRES_PORT}/{POSTGRES_DB}"
-    SECRET_KEY = os.getenv("SECRET_KEY", "supersecret")
-    ALGORITHM = "HS256"
-    otp_username = os.getenv("OTP_USERNAME", "ClickSeek")
-    apikey = os.getenv("APIKEY", "6e9ebca80ffb5cd0e0808e99b59ef192")
-    senderid = os.getenv("SENDERID", "AC073263636ee4ffebb25c2b529b24084a")
-    sender_number = os.getenv("SENDER_NUMBER", "+19786783493")
+    POSTGRES_USER: str = os.getenv("POSTGRES_USER")
+    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD")
+    POSTGRES_SERVER: str = os.getenv("POSTGRES_SERVER")
+    POSTGRES_PORT: str = os.getenv("POSTGRES_PORT")
+    POSTGRES_DB: str = os.getenv("POSTGRES_DB")
+    DATABASE_URL: str = ""
+    # DATABASE_URL: str = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}:{POSTGRES_PORT}/{POSTGRES_DB}"
+    SECRET_KEY: str = os.getenv("SECRET_KEY")
+    ALGORITHM: str = os.getenv("ALGORITHM")
+    otp_username: str = os.getenv("OTP_USERNAME")
+    apikey: str = os.getenv("APIKEY")
+    senderid: str = os.getenv("SENDERID")
+    sender_number: str = os.getenv("SENDER_NUMBER")
+
+    class Config:
+        env_file = ".env"
 
 settings = Settings()
+DATABASE_URL = f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_SERVER}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
+settings.DATABASE_URL = DATABASE_URL

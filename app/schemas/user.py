@@ -1,10 +1,10 @@
 from pydantic import BaseModel
 
 class UserLogout(BaseModel):
-    username: str
+    mobile_number: str
 
 class UserLogin(BaseModel):
-    username: str
+    mobile_number: str
     password: str
 
 class UserCreate(BaseModel):

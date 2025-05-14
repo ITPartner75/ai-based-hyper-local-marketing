@@ -43,11 +43,11 @@ def get_current_user(token: HTTPAuthorizationCredentials = Depends(bearer_scheme
     try:
         # ✅ FIX: extract the token string
         payload = jwt.decode(token.credentials, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        user_id = payload.get("sub")
+        mobile_number = payload.get("mobile_number")
         role = payload.get("role")
         if user_id is None or role is None:
             raise credentials_exception
-        return {"user_id": user_id, "role": role}
+        return {"mobile_number": user_id, "role": role}
     except JWTError:
         raise credentials_exception
 

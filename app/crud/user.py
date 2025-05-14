@@ -11,7 +11,7 @@ def get_user_by_username(db: Session, username: str):
 def create_user(db: Session,hashed_password: str, data: UserCreate):
     user = User(
         mobile_number=data.mobile_number,
-        username=f"{data.first_name}_{data.mobile_number}",
+        # username=f"{data.first_name}_{data.mobile_number}",
         hashed_password = hashed_password,
         first_name = data.first_name,
         last_name = data.last_name)
@@ -20,9 +20,13 @@ def create_user(db: Session,hashed_password: str, data: UserCreate):
     db.refresh(user)
     return user
 
-def update_user_credentials(db: Session, user: User, username: str, hashed_password: str):
-    user.username = username
+def update_user_credentials(db: Session, user: User, mobile_number: str, hashed_password: str):
+    user.mobile_number = mobile_number
     user.hashed_password = hashed_password
     db.commit()
     db.refresh(user)
     return user
+
+def delete_user(db: Session, user: User):
+    db.delete(user)
+    db.commit()
