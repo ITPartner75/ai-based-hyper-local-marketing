@@ -20,6 +20,6 @@ class Settings(BaseSettings):
     sender_number: str = os.getenv("SENDER_NUMBER")
 
     class Config:
-        env_file = ".env"
+        env_file = "app/.env"
 
 settings = Settings()

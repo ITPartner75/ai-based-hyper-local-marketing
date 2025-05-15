@@ -1,4 +1,3 @@
-import uvicorn
 from fastapi import FastAPI
 from app.db.session import engine
 from app.db.base import Base  # This includes your models
@@ -16,7 +15,4 @@ def startup():
 # ✅ Include routes
 app.include_router(auth_router, prefix="/api/v1/auth")
 app.include_router(business_router, prefix="/api/v1", tags=["Business"])
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=5000, log_level="info")
 
