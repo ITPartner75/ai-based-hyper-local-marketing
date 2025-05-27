@@ -98,3 +98,14 @@ def logout(data: UserLogout, db: Session = Depends(get_db)):
             return {"status_code": 400, "detail": "Log Out Failed.."}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/check-for-user/{mobile_no}")
+def get_business(mobile_no: str, db: Session = Depends(get_db)):
+    try:
+        user = user_crud.get_user_by_mobile(db=db,mobile_number=mobile_no)
+        if not user:
+            return {"status_code": 404, "detail": "User not Found."}
+        return {"status_code": 200, "detail": "User exists in System."}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
