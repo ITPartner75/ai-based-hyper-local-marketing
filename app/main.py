@@ -9,8 +9,7 @@ from app.api.v1.business import router as business_router
 app = FastAPI()
 origins = [
     "http://localhost:5173",
-    "http://192.168.77.8:5173",
-    "*"
+    "http://192.168.77.8:5173"
 ]
 
 app.add_middleware(
