@@ -5,6 +5,9 @@ from fastapi import HTTPException, Depends, status
 # from fastapi.security import OAuth2PasswordBearer
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.core.config import settings
+from app.crud.user import get_user_by_mobile
+from app.db.base import get_db
+from sqlalchemy.orm import Session
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 bearer_scheme = HTTPBearer()
@@ -33,7 +36,7 @@ def decode_token(token: str) -> dict | None:
     except JWTError:
         return None
 
-def get_current_user(token: HTTPAuthorizationCredentials = Depends(bearer_scheme)):
+def get_current_user(token: HTTPAuthorizationCredentials = Depends(bearer_scheme), db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
         status_code=401,
         detail="Could not validate credentials",
@@ -45,9 +48,10 @@ def get_current_user(token: HTTPAuthorizationCredentials = Depends(bearer_scheme
         payload = jwt.decode(token.credentials, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         mobile_number = payload.get("mobile_number")
         role = payload.get("role")
-        if user_id is None or role is None:
+        user = get_user_by_mobile(db, mobile_number)
+        if user is None or role is None:
             raise credentials_exception
-        return {"mobile_number": user_id, "role": role}
+        return {"mobile_number": mobile_number, "role": role}
     except JWTError:
         raise credentials_exception
 

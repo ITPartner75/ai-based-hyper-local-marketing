@@ -75,15 +75,12 @@ def signup_route(data: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/refresh-token")
-async def refresh_token_route(request: Request):
-    body = await request.json()
-    refresh_token = body.get("refresh_token")
-    
+async def refresh_token_route(refresh_token: str):
     payload = decode_token(refresh_token)
     if not payload:
         raise HTTPException(status_code=403, detail="Invalid refresh token.")
 
-    new_token = create_access_token({"mobile": payload["mobile"], "name": payload.get("name")})
+    new_token = create_access_token({"mobile_number": payload["mobile_number"], "role": payload.get("role")})
     return {"status_code": 200, "detail": "New access token generated successfully.", "access_token": new_token, "token_type": "bearer"}
 
 
