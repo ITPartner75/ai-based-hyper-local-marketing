@@ -11,3 +11,4 @@ loguru
 twilio
 pydantic-settings
 beautifulsoup4
+alembic
