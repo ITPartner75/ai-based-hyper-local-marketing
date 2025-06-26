@@ -1,5 +1,7 @@
-from sqlalchemy import Boolean, Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Boolean, Column, Integer, String, DateTime, ForeignKey, LargeBinary
+from sqlalchemy.dialects.postgresql import ARRAY
 from app.db.base import Base
+from typing import List
 import datetime
 
 class Business(Base):
@@ -17,11 +19,11 @@ class Media(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     business_id = Column(Integer, ForeignKey("business.id"), nullable=False)
-    images = Column(String, nullable=True)
-    logo = Column(String, nullable=True)
-    brouchure = Column(String, nullable=True)
-    report = Column(String, nullable=True)
-    videos = Column(String, nullable=True)
+    images = Column(LargeBinary, nullable=True)     # ✅ binary image data
+    logo = Column(LargeBinary, nullable=True)
+    brouchure = Column(LargeBinary, nullable=True)
+    report = Column(LargeBinary, nullable=True)
+    videos = Column(LargeBinary, nullable=True)     # ✅ binary video data
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow)
@@ -36,6 +38,7 @@ class Contact(Base):
     phone = Column(String, nullable=True)
     address = Column(String, nullable=True)
     social_media = Column(String, nullable=True)
+    website = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow)
@@ -47,6 +50,7 @@ class BusinessDetails(Base):
     business_id = Column(Integer, ForeignKey("business.id"), nullable=False)
     media_id = Column(Integer, ForeignKey("media.id"), nullable=False)
     contact_id = Column(Integer, ForeignKey("contact.id"), nullable=False)
-    products = Column(String, nullable=True)
+    products = Column(ARRAY(String), nullable=True)
+    is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow)

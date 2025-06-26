@@ -1,10 +1,29 @@
 from fastapi import FastAPI
+from contextlib import asynccontextmanager
+from alembic.config import Config
+from alembic import command
 from fastapi.middleware.cors import CORSMiddleware
 from app.db.session import engine
 from app.db.base import Base  # This includes your models
 from app.api.v1.auth import router as auth_router
 from app.api.v1.business import router as business_router
+from pathlib import Path
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+def run_migrations():
+    print(str(BASE_DIR / "alembic.ini"))
+    alembic_cfg = Config(str(BASE_DIR / "alembic.ini"))
+    print(alembic_cfg.__dict__)
+    command.upgrade(alembic_cfg, "head")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup logic
+    run_migrations()
+    yield
+    # Shutdown logic (optional)
 
 app = FastAPI()
 origins = [

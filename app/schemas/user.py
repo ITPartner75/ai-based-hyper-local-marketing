@@ -18,5 +18,6 @@ class UserOut(BaseModel):
     mobile_number: str
     role: str
     is_active: bool
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True  # ✅ Enables `.from_orm()` in Pydantic v2
+    }

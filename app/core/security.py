@@ -51,7 +51,7 @@ def get_current_user(token: HTTPAuthorizationCredentials = Depends(bearer_scheme
         user = get_user_by_mobile(db, mobile_number)
         if user is None or role is None:
             raise credentials_exception
-        return {"mobile_number": mobile_number, "role": role}
+        return {"mobile_number": mobile_number, "role": role, "id": user.id}
     except JWTError:
         raise credentials_exception
 
