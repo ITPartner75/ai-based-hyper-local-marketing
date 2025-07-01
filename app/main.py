@@ -28,6 +28,8 @@ async def lifespan(app: FastAPI):
 app = FastAPI()
 origins = [
     "http://localhost:5173",
+    "http://0.0.0.0:5173",
+    "http://14.99.81.62:5173",
     "http://192.168.77.8:5173",
     "https://glokai.netlify.app"
 ]
