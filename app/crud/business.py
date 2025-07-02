@@ -2,8 +2,24 @@ from sqlalchemy.orm import Session
 from app.models.business_details import *
 from app.schemas.business import BusinessDetailsOut, MediaBase, ContactBase
 from app.util.webscrap import get_website_logo_bytes
+from app.util.file_utils import save_media_locally, save_product_locally
+from app.constants.business import ALLOWED_TYPES
 from fastapi.responses import StreamingResponse
-import base64, io
+from fastapi import UploadFile
+import base64
+from io import BytesIO
+
+def commit_db(db: Session, model: str):
+    db.commit()
+    db.refresh(model)
+
+def add_to_db(db: Session, model: str):
+    db.add(model)
+    commit_db(db=db, model=model)
+
+def update_db(db: Session, model: str, field: str, value):
+    setattr(model, field, value)
+    commit_db(db=db, model=model)
 
 def unset_active_records(db: Session, model: str, business_id: int, active_id: int):
     all_active = db.query(model).filter(model.business_id == business_id,
@@ -11,42 +27,34 @@ def unset_active_records(db: Session, model: str, business_id: int, active_id: i
                                   model.id != active_id).all()
     print(all_active)
     for rec in all_active:
-        setattr(rec, "is_active", False)
-        db.commit()
-        db.refresh(rec)
-
+        update_db(db=db, model=rec, field="is_active", value=False)
+    
 def create_business(db: Session, user_id: int, data):
     business = Business(user_id=user_id, **data.dict())
-    print(f"Business: {business}")
-    db.add(business)
-    db.commit()
-    db.refresh(business)
+    add_to_db(db=db, model=business)
     return business
 
 def get_business(db: Session, business_id: int):
-    return db.query(Business).filter(Business.id == business_id).first()
+    return db.query(Business).filter(Business.id == business_id,
+                                     Business.is_active == True).first()
 
 def get_all_businesses(db: Session):
     return db.query(Business).all()
 
 def update_business(db: Session, business_id: int, data):
-    business = db.query(Business).filter(Business.id == business_id).first()
+    business = get_business(db=db, business_id=business_id)
     if not business:
         return None
     for key, value in data.dict(exclude_unset=True).items():
         setattr(business, key, value)
-    db.commit()
-    db.refresh(business)
+    commit_db(db=db, model=business)
     return business
 
 def delete_business(db: Session, business_id: int):
-    business = db.query(Business).filter(Business.id == business_id,
-                                         Business.is_active == True).first()
+    business = get_business(db=db, business_id=business_id)
     if not business:
         return None
-    setattr(business, "is_active", False)
-    db.commit()
-    db.refresh(business)
+    update_db(db=db, model=business, field="is_active", value=False)
     return business
 
 #media
@@ -59,72 +67,96 @@ def standardize_media(media: Media):
     media.videos = base64.b64encode(media.videos).decode("utf-8") if media.videos else None
     return media
 
-def create_media(db: Session, user_id: int, business_id: int, data):
-    contact = get_contact(db=db, business_id=business_id)
-    if contact.website:
-        if data.logo is None:
-            logo_bytes = get_website_logo_bytes(contact.website)
-            data.logo = logo_bytes
-    media = Media(user_id=user_id, business_id=business_id, **data.dict())
-    print(f"Media: {media.logo}")
-    db.add(media)
-    db.commit()
-    db.refresh(media)
+def create_media(db: Session, user_id: int, business_id: int):
+    media = Media(user_id=user_id, business_id=business_id)
+    add_to_db(db=db, model=media)
     unset_active_records(db=db, model=Media, business_id=media.business_id, active_id=media.id)
-    
-    return standardize_media(media)
+    return media
 
-def get_media(db: Session, business_id: int, field_name: str=None):
+def upload_media_file(db: Session, business_id: int, file_type: str, file: UploadFile):
+    # Validate file_type
+    if file_type not in ALLOWED_TYPES:
+        return "invalid_file_type"
+
+    # Check if media exists
+    media = get_media(db=db, business_id=business_id)
+    if not media:
+        return None
+
+    # Save file
+    file_info = save_media_locally(file)
+
+    # Save record in DB
+    media_file = MediaFile(
+        media_id=media.id,
+        file_url=file_info["relative_path"],
+        file_name=file_info["file_name"],
+        file_type=file_type,
+        mime_type=file_info["mime_type"],
+        file_size=file_info["file_size"]
+    )
+    add_to_db(media_file)
+    return media_file
+
+def get_media(db: Session, business_id: int, file_type: str=None):
     media = db.query(Media).filter(Media.business_id == business_id,
                                   Media.is_active == True).first()
     if not media:
         return None
-    if field_name:
-        valid_fields = {"images", "logo", "brouchure", "report", "videos"}
-        if field_name not in valid_fields:
+    if file_type:
+        media_file = None
+        if file_type not in ALLOWED_TYPES:
             return "invalid"
-        binary_data = getattr(media, field_name)
-        if not binary_data:
+        media_file = db.query(MediaFile).filter(MediaFile.media_id == media.id, 
+                                                MediaFile.file_type == file_type, 
+                                                MediaFile.is_active == True).all()
+        if not media_file:
             return None
+        return media_file
+    return media
 
-        mime_type = {
-            "images": "image/png",
-            "logo": "image/png",
-            "brouchure": "application/pdf",
-            "report": "application/pdf",
-            "videos": "video/mp4",
-        }.get(field_name, "application/octet-stream")
-        return StreamingResponse(io.BytesIO(binary_data), media_type=mime_type)
-    return standardize_media(media)
+def webscrap_logo(db: Session, business_id: int):
+    contact = get_contact(db=db, business_id=business_id)
+    if contact:
+        if hasattr(contact, "website"):
+            if contact.website not in [None, ""]:
+                logo_bytes = get_website_logo_bytes(url=contact.website)
+                if logo_bytes:
+                    buffer = BytesIO(logo_bytes)
+                    return StreamingResponse(buffer, media_type="application/octet-stream")
+    return None
 
-def update_media(db: Session, business_id: int, data):
-    media = db.query(Media).filter(Media.business_id == business_id,
-                                   Media.is_active == True).first()
-    if not media:
-        return None
-    for key, value in data.dict(exclude_unset=True).items():
-        setattr(media, key, value)
-    db.commit()
-    db.refresh(media)
-    return standardize_media(media)
+# def update_media(db: Session, business_id: int, data):
+#     media = db.query(Media).filter(Media.business_id == business_id,
+#                                    Media.is_active == True).first()
+#     if not media:
+#         return None
+#     for key, value in data.dict(exclude_unset=True).items():
+#         setattr(media, key, value)
+#     db.commit()
+#     db.refresh(media)
+#     return standardize_media(media)
+
+def get_media_files(db: Session, media_id: int):
+    media_files = db.query(MediaFile).filter(MediaFile.media_id == media_id,
+                                   MediaFile.is_active == True).all()
+    return media_files
 
 def delete_media(db: Session, business_id: int):
-    media = db.query(Media).filter(Media.business_id == business_id,
-                                   Media.is_active == True).first()
+    media = get_media(db=db, business_id=business_id)
     if not media:
         return None
-    setattr(media, "is_active", False)
-    db.commit()
-    db.refresh(media)
-    return standardize_media(media)
+    update_db(db=db, model=media, field="is_active", value=False)
+    media_files = get_media_files(db=db, media_id=media.id)
+    if media_files:
+        for file in media_files:
+            update_db(db=db, model=file, field="is_active", value=False)
+    return media
 
 #contact
 def create_contact(db: Session, user_id: int, business_id: int, data):
     contact = Contact(user_id=user_id, business_id=business_id, **data.dict())
-    print(f"Contact: {contact}")
-    db.add(contact)
-    db.commit()
-    db.refresh(contact)
+    add_to_db(db=db, model=contact)
     unset_active_records(db=db, model=Contact, business_id=contact.business_id, 
                          active_id=contact.id)
     return contact
@@ -134,100 +166,126 @@ def get_contact(db: Session, business_id: int):
                                     Contact.is_active == True).first()
 
 def update_contact(db: Session, business_id: int, data):
-    contact = db.query(Contact).filter(Contact.business_id == business_id,
-                                       Contact.is_active == True).first()
+    contact = get_contact(db=db, business_id=business_id)
     if not contact:
         return None
     for key, value in data.dict(exclude_unset=True).items():
         setattr(contact, key, value)
-    db.commit()
-    db.refresh(contact)
-    if "website" in list(data.dict(exclude_unset=True).keys()):
-        media = get_media(db=db, business_id=business_id)
-        if media:
-            if media.logo is None:
-                logo_bytes = get_website_logo_bytes(contact.website)
-                media.logo = logo_bytes
-                db.commit()
-                db.refresh(media)
+    commit_db(db=db, model=contact)
     return contact
 
 def delete_contact(db: Session, business_id: int):
-    contact = db.query(Contact).filter(Contact.business_id == business_id,
-                                       Contact.is_active == True).first()
+    contact = get_contact(db=db, business_id=business_id)
     if not contact:
         return None
-    setattr(contact, "is_active", False)
-    db.commit()
-    db.refresh(contact)
+    update_db(db=db, model=contact, field="is_active", value=False)
     return contact
 
 #business details
-def create_business_details(db: Session, user_id: int, business_id: int, data):
+def create_business_details(db: Session, user_id: int, business_id: int):
     contact = get_contact(db=db, business_id=business_id)
     media = get_media(db=db, business_id=business_id)
     business_details = BusinessDetails(user_id=user_id, business_id=business_id, 
-                                       media_id=media.id, contact_id=contact.id, 
-                                       **data.dict())
-    print(f"Business: {business_details}")
-    db.add(business_details)
-    db.commit()
-    db.refresh(business_details)
+                                       media_id=media.id, contact_id=contact.id)
+    add_to_db(db=db, model=business_details)
     unset_active_records(db=db, model=BusinessDetails, business_id=business_details.business_id, 
                          active_id=business_details.id)
-    business_details_out = BusinessDetailsOut(media=MediaBase.model_validate(media), 
-                                              contact=ContactBase.model_validate(contact),
-                                              products=business_details.products
-                                              )
-    return business_details_out
+    return business_details
 
 def get_business_details(db: Session, business_id: int):
     business_details = db.query(BusinessDetails).filter(BusinessDetails.business_id == business_id,
                                             BusinessDetails.is_active == True).first()
-    if business_details:
-        contact = get_contact(db=db, business_id=business_details.business_id)
-        media = get_media(db=db, business_id=business_details.business_id)
-        business_details_out = BusinessDetailsOut(media=MediaBase.model_validate(media), 
-                                                  contact=ContactBase.model_validate(contact),
-                                                  products=business_details.products
-                                                )
-    else:
-        business_details_out = BusinessDetailsOut()
-        
-    return business_details_out
+    return business_details
 
 
 def update_business_details(db: Session, business_id: int, data):
-    business_details = db.query(BusinessDetails).filter(BusinessDetails.business_id == business_id,
-                                                        BusinessDetails.is_active == True).first()
+    business_details = get_business_details(db=db, business_id=business_id) 
     if not business_details:
         return None
     for key, value in data.dict(exclude_unset=True).items():
         setattr(business_details, key, value)
-    db.commit()
-    db.refresh(business_details)
-    contact = get_contact(db=db, business_id=business_details.business_id)
-    media = get_media(db=db, business_id=business_details.business_id)
-    business_details_out = BusinessDetailsOut(media=MediaBase.model_validate(media), 
-                                                contact=ContactBase.model_validate(contact),
-                                                products=business_details.products
-                                            )
-        
-    return business_details_out
+    commit_db(db=db, model=business_details)        
+    return business_details
 
 def delete_business_details(db: Session, business_id: int):
-    business_details = db.query(BusinessDetails).filter(BusinessDetails.business_id == business_id,
-                                                        BusinessDetails.is_active == True).first()
+    business_details = get_business_details(db=db, business_id=business_id)
+    if not business_details:
+        return None
+    update_db(db=db, model=business_details, field="is_active", value=False)
+    delete_all_products(db=db, business_id=business_id)
+    return business_details
+
+#Products
+def create_product(db: Session, business_id: int, name: str,
+                   description:str, price:float, image:UploadFile):
+    business_details = get_business_details(db=db, business_id=business_id)
     
     if not business_details:
-        return None 
-    setattr(business_details, "is_active", False)
-    db.commit()
-    db.refresh(business_details)
-    contact = get_contact(db=db, business_id=business_details.business_id)
-    media = get_media(db=db, business_id=business_details.business_id)
-    business_details_out = BusinessDetailsOut(media=MediaBase.model_validate(media), 
-                                            contact=ContactBase.model_validate(contact),
-                                            products=business_details.products
-                                        )
-    return business_details_out
+        return None
+    
+    # Save file
+    file_info = save_product_locally(image)
+    print(file_info)
+
+    # Save record in DB
+    product = Product(
+        business_details_id=business_details.id,
+        name=name,
+        description=description,
+        price=price,
+        image_name=file_info["image_name"],
+        image_url=file_info["image_url"],
+        image_size=file_info["image_size"]      
+    )
+    add_to_db(db=db, model=product)
+    return product
+
+
+def get_product(product_id: int, db: Session):
+    product = db.query(Product).filter(Product.id == product_id).first()
+    if not product:
+        return None
+    return product
+
+def get_products(business_id: int, db: Session):
+    business_details = get_business_details(db=db, business_id=business_id)
+    
+    if not business_details:
+        return None
+    products = db.query(Product).filter(Product.business_details_id == business_details.id, 
+                                        Product.is_active == True).all()
+    if not products:
+        return None
+    return products
+
+def update_product(db: Session, product_id: int, name: str,
+                   description:str, price:float, image:UploadFile):
+    product = get_product(db=db, product_id=product_id)
+    
+    if not product:
+        return None
+    
+    # Save file
+    file_info = save_product_locally(image)
+    print(file_info)
+    if name is not None:
+        product.name = name
+    if description is not None:
+        product.description = description
+    if price is not None:
+        product.price = price
+    commit_db(db=db, model=product)
+    return product
+
+def delete_all_products(db: Session, business_id: int):
+    products = get_products(db=db, business_id=business_id)
+    if products:
+        for product in products:
+            update_db(db=db, model=product, field="is_active", value=False)
+    return products
+
+def delete_product(db: Session, product_id: int):
+    product = get_product(db=db, product_id=product_id)
+    if product:
+        update_db(db=db, model=product, field="is_active", value=False)
+    return product

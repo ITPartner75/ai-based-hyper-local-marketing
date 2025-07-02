@@ -1,0 +1,1 @@
+ALLOWED_TYPES = {"image", "video", "brochure", "report", "logo"}

@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 from alembic.config import Config
 from alembic import command
@@ -50,4 +51,5 @@ def startup():
 # ✅ Include routes
 app.include_router(auth_router, prefix="/api/v1/auth")
 app.include_router(business_router, prefix="/api/v1", tags=["Business"])
+app.mount("/uploads", StaticFiles(directory="app/uploads"), name="uploads")
 

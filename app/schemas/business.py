@@ -27,11 +27,11 @@ class BusinessOut(BusinessBase):
 
 #Media
 class MediaBase(BaseModel):
-    images: Optional[bytes] = None
-    logo: Optional[bytes] = None
-    brouchure: Optional[bytes] = None
-    report: Optional[bytes] = None
-    videos: Optional[bytes] = None
+    # images: Optional[bytes] = None
+    # logo: Optional[bytes] = None
+    # brouchure: Optional[bytes] = None
+    # report: Optional[bytes] = None
+    # videos: Optional[bytes] = None
 
     model_config = {
         "from_attributes": True  # ✅ Enables `.from_orm()` in Pydantic v2
@@ -39,8 +39,8 @@ class MediaBase(BaseModel):
 
 class MediaCreate(MediaBase): pass
 
-class MediaUpdate(MediaBase): 
-    is_active: Optional[bool] = True
+# class MediaUpdate(MediaBase): 
+#     is_active: Optional[bool] = True
 
 class MediaOut(MediaBase):
     id: int
@@ -48,6 +48,18 @@ class MediaOut(MediaBase):
     business_id: int
     is_active: bool
     created_at: datetime
+
+    model_config = {
+        "from_attributes": True  # ✅ Enables `.from_orm()` in Pydantic v2
+    }
+
+class MediaFileOut(BaseModel):
+    id: int
+    file_url: str
+    file_type: str
+    mime_type: Optional[str] = None
+    file_size: Optional[int] = None
+    is_active: bool
 
     model_config = {
         "from_attributes": True  # ✅ Enables `.from_orm()` in Pydantic v2
@@ -82,8 +94,8 @@ class ContactOut(ContactBase):
     }
 
 #Business Details
-class BusinessDetailsBase(BaseModel):
-    products: Optional[list[str]] = None
+class BusinessDetailsBase(BaseModel): pass
+    # products: Optional[list[str]] = None
 
 class BusinessDetailsCreate(BusinessDetailsBase): pass
 
@@ -91,9 +103,28 @@ class BusinessDetailsUpdate(BusinessDetailsBase):
     is_active: Optional[bool] = True
 
 class BusinessDetailsOut(BusinessDetailsBase):
-    media: Optional[MediaBase] = None
-    contact: Optional[ContactBase] = None
+    # media: Optional[MediaBase] = None
+    # contact: Optional[ContactBase] = None
+    id: int
+    business_id: int
+    contact_id: int
+    media_id: int
 
+    model_config = {
+        "from_attributes": True  # ✅ Enables `.from_orm()` in Pydantic v2
+    }
+
+#Products
+class ProductOut(BaseModel):
+    id: int
+    name: str
+    description: Optional[str] = None
+    price: float
+    image_name: Optional[str] = None
+    image_url: Optional[str] = None
+    image_size: Optional[int] = None
+    is_active: bool
+    created_at: datetime
     model_config = {
         "from_attributes": True  # ✅ Enables `.from_orm()` in Pydantic v2
     }
