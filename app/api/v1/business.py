@@ -92,7 +92,7 @@ def get_media_files(business_id: int, file_type: str, db: Session = Depends(get_
         raise HTTPException(status_code=400, detail="Invalid media field")
     return media_files
 
-@router.get("webscrap/logo/{business_id}")
+@router.get("/webscrap/logo/{business_id}")
 def webscrap_logo(business_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)):
     logo = business_crud.webscrap_logo(db=db, business_id=int(business_id))
     if not logo:
