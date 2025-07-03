@@ -56,6 +56,7 @@ class MediaOut(MediaBase):
 class MediaFileOut(BaseModel):
     id: int
     file_url: str
+    file_name: str
     file_type: str
     mime_type: Optional[str] = None
     file_size: Optional[int] = None

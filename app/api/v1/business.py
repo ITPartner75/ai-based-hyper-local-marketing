@@ -201,9 +201,18 @@ def get_products(business_id: int, db: Session = Depends(get_db), user=Depends(g
         raise HTTPException(status_code=404, detail="Products not found")
     return products
 
-@router.put("/product/{product_id}")
-def update_product(product_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)):
-    updated = business_crud.update_product(db=db, product_id=int(product_id))
+@router.put("/product/update")
+def update_product(product_id: int = Form(...),
+                   name: str = Form(None),
+                   description: str = Form(None),
+                   price: float = Form(None),
+                   image: UploadFile = Form(None), 
+                   db: Session = Depends(get_db), 
+                   user=Depends(get_current_user)):
+    updated = business_crud.update_product(db=db, product_id=int(product_id),
+                                           name=name, description=description,
+                                           price=price,
+                                           image=image)
     if not updated:
         raise HTTPException(status_code=404, detail="Product not found")
     return {"detail": "Product updated"}
