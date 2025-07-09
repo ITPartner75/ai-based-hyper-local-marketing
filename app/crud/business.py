@@ -95,7 +95,7 @@ def upload_media_file(db: Session, business_id: int, file_type: str, file: Uploa
         mime_type=file_info["mime_type"],
         file_size=file_info["file_size"]
     )
-    add_to_db(media_file)
+    add_to_db(db=db, model=media_file)
     return media_file
 
 def get_media(db: Session, business_id: int, file_type: str=None):
