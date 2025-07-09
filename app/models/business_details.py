@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, Integer, String, DateTime, ForeignKey, Float
+from sqlalchemy import Boolean, Column, Integer, String, DateTime, ForeignKey, Float, LargeBinary
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -48,6 +48,7 @@ class MediaFile(Base):
     file_name = Column(String, nullable=False)
     file_url = Column(String, nullable=False)
     file_type = Column(String, nullable=False)  # image, video, brochure, etc.
+    file_data = Column(String, nullable=True)
     mime_type = Column(String, nullable=True)
     file_size = Column(Integer, nullable=True)
     is_active = Column(Boolean, default=True)
@@ -89,6 +90,7 @@ class Product(Base):
     price = Column(Float, nullable=False)
     image_name = Column(String, nullable=True)
     image_url = Column(String, nullable=True)
+    image_data = Column(String, nullable=True)
     image_size = Column(Integer, nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, server_default=func.now())

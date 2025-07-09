@@ -58,6 +58,7 @@ class MediaFileOut(BaseModel):
     file_url: str
     file_name: str
     file_type: str
+    file_data: Optional[str]
     mime_type: Optional[str] = None
     file_size: Optional[int] = None
     is_active: bool
@@ -124,6 +125,7 @@ class ProductOut(BaseModel):
     image_name: Optional[str] = None
     image_url: Optional[str] = None
     image_size: Optional[int] = None
+    image_data: Optional[str] = None
     is_active: bool
     created_at: datetime
     model_config = {

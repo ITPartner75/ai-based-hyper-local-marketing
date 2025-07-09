@@ -93,6 +93,8 @@ def upload_media_file(db: Session, business_id: int, file_type: str, file: Uploa
         media_id=media.id,
         file_url=file_info["relative_path"],
         file_name=file_info["file_name"],
+        file_data=base64.b64encode(file_info["file_data"]).decode("utf-8"),
+        # file_data=file_info["file_data"],
         file_type=file_type,
         mime_type=file_info["mime_type"],
         file_size=file_info["file_size"]
@@ -227,7 +229,6 @@ def create_product(db: Session, business_id: int, name: str,
     
     # Save file
     file_info = save_product_locally(image)
-    print(file_info)
 
     # Save record in DB
     product = Product(
@@ -237,6 +238,8 @@ def create_product(db: Session, business_id: int, name: str,
         price=price,
         image_name=file_info["image_name"],
         image_url=file_info["image_url"],
+        image_data=base64.b64encode(file_info["image_data"]).decode("utf-8"),
+        # image_data=file_info["image_data"],
         image_size=file_info["image_size"]      
     )
     add_to_db(db=db, model=product)
@@ -269,7 +272,6 @@ def update_product(db: Session, product_id: int, name: str,
     
     # Save file
     file_info = save_product_locally(image)
-    print(file_info)
     if name is not None:
         product.name = name
     if description is not None:

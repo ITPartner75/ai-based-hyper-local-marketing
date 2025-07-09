@@ -15,14 +15,16 @@ def save_media_locally(upload_file: UploadFile) -> dict:
     unique_filename = f"{uuid4().hex}{extension}"
     save_path = os.path.join(MEDIA_UPLOAD_DIR, unique_filename)
     print(f"trying to save file...")
-    with open(save_path, "wb") as buffer:
-        buffer.write(upload_file.file.read())
+    # with open(save_path, "wb") as buffer:
+    #     buffer.write(upload_file.file.read())
     print("saved file...")
+    file_data = upload_file.file.read()
     return {
         "file_name" : unique_filename,
+        "file_data": file_data,
         "relative_path": os.path.join(MEDIA_UPLOAD_DIR, unique_filename),
         "mime_type": guess_type(save_path)[0],
-        "file_size": os.path.getsize(save_path)
+        "file_size": len(file_data)
     }
 
 def save_product_locally(upload_file: UploadFile) -> dict:
@@ -32,11 +34,12 @@ def save_product_locally(upload_file: UploadFile) -> dict:
     unique_filename = f"{uuid4().hex}{extension}"
     save_path = os.path.join(PRODUCT_UPLOAD_DIR, unique_filename)
 
-    with open(save_path, "wb") as buffer:
-        buffer.write(upload_file.file.read())
-
+    # with open(save_path, "wb") as buffer:
+    #     buffer.write(upload_file.file.read())
+    image_data = upload_file.file.read()
     return {
         "image_name" : unique_filename,
+        "image_data": image_data,
         "image_url": os.path.join(PRODUCT_UPLOAD_DIR, unique_filename),
-        "image_size": os.path.getsize(save_path)
+        "image_size": len(image_data)
     }
