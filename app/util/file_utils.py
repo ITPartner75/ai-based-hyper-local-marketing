@@ -14,10 +14,10 @@ def save_media_locally(upload_file: UploadFile) -> dict:
     extension = os.path.splitext(upload_file.filename)[-1]
     unique_filename = f"{uuid4().hex}{extension}"
     save_path = os.path.join(MEDIA_UPLOAD_DIR, unique_filename)
-
+    print(f"trying to save file...")
     with open(save_path, "wb") as buffer:
         buffer.write(upload_file.file.read())
-
+    print("saved file...")
     return {
         "file_name" : unique_filename,
         "relative_path": os.path.join(MEDIA_UPLOAD_DIR, unique_filename),

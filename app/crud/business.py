@@ -83,8 +83,10 @@ def upload_media_file(db: Session, business_id: int, file_type: str, file: Uploa
     if not media:
         return None
 
+    print(f"Got media...")
     # Save file
     file_info = save_media_locally(file)
+    print(f"file info: {file_info}")
 
     # Save record in DB
     media_file = MediaFile(
