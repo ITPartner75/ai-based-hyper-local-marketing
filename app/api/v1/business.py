@@ -177,10 +177,11 @@ def create_product(
     name: str = Form(...),
     description: Optional[str] = Form(None),
     price: float = Form(...),
-    image: UploadFile = File(...),
+    image: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
+    print("i:",image)
     product = business_crud.create_product(db=db,
                                            business_id=business_id,
                                            name=name,
@@ -205,8 +206,8 @@ def get_products(business_id: int, db: Session = Depends(get_db), user=Depends(g
 def update_product(product_id: int = Form(...),
                    name: str = Form(None),
                    description: str = Form(None),
-                   price: float = Form(None),
-                   image: UploadFile = Form(None), 
+                   price: Union[float, None] = Form(None),
+                   image: UploadFile = File(None), 
                    db: Session = Depends(get_db), 
                    user=Depends(get_current_user)):
     updated = business_crud.update_product(db=db, product_id=int(product_id),
@@ -215,7 +216,7 @@ def update_product(product_id: int = Form(...),
                                            image=image)
     if not updated:
         raise HTTPException(status_code=404, detail="Product not found")
-    return {"detail": "Product updated"}
+    return updated
 
 @router.delete("/products/{business_id}")
 def delete_all_products(business_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)):

@@ -126,6 +126,7 @@ class ProductOut(BaseModel):
     image_url: Optional[str] = None
     image_size: Optional[int] = None
     image_data: Optional[str] = None
+    image_mime: Optional[str] = None
     is_active: bool
     created_at: datetime
     model_config = {

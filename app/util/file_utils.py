@@ -41,5 +41,6 @@ def save_product_locally(upload_file: UploadFile) -> dict:
         "image_name" : unique_filename,
         "image_data": image_data,
         "image_url": os.path.join(PRODUCT_UPLOAD_DIR, unique_filename),
+        "image_mime": guess_type(save_path)[0],
         "image_size": len(image_data)
     }

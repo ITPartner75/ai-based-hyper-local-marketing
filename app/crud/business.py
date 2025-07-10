@@ -223,13 +223,21 @@ def delete_business_details(db: Session, business_id: int):
 def create_product(db: Session, business_id: int, name: str,
                    description:str, price:float, image:UploadFile):
     business_details = get_business_details(db=db, business_id=business_id)
-    
+    print("in crud product")
     if not business_details:
         return None
     
     # Save file
-    file_info = save_product_locally(image)
-
+    if image is not None:
+        file_info = save_product_locally(image)
+    else:
+        file_info = {
+            "image_name" : None,
+            "image_data": None,
+            "image_url": None,
+            "image_mime": None,
+            "image_size": None
+        }
     # Save record in DB
     product = Product(
         business_details_id=business_details.id,
@@ -238,8 +246,8 @@ def create_product(db: Session, business_id: int, name: str,
         price=price,
         image_name=file_info["image_name"],
         image_url=file_info["image_url"],
-        image_data=base64.b64encode(file_info["image_data"]).decode("utf-8"),
-        # image_data=file_info["image_data"],
+        image_data=base64.b64encode(file_info["image_data"]).decode("utf-8") if file_info["image_data"] else None,
+        image_mime=file_info["image_mime"],
         image_size=file_info["image_size"]      
     )
     add_to_db(db=db, model=product)
@@ -271,13 +279,28 @@ def update_product(db: Session, product_id: int, name: str,
         return None
     
     # Save file
-    file_info = save_product_locally(image)
-    if name is not None:
+    if image is not None:
+        file_info = save_product_locally(image)
+    else:
+        file_info = {
+            "image_name" : None,
+            "image_data": None,
+            "image_url": None,
+            "image_mime": None,
+            "image_size": None
+        }
+    if name not in [None, "null", ""]:
         product.name = name
-    if description is not None:
+    if description not in [None, "null", ""]:
         product.description = description
     if price is not None:
         product.price = price
+    if image is not None:
+        product.image_name=file_info["image_name"],
+        product.image_url=file_info["image_url"],
+        product.image_data=base64.b64encode(file_info["image_data"]).decode("utf-8") if file_info["image_data"] else None,
+        product.image_mime=file_info["image_mime"],
+        product.image_size=file_info["image_size"]
     commit_db(db=db, model=product)
     return product
 

@@ -91,6 +91,7 @@ class Product(Base):
     image_name = Column(String, nullable=True)
     image_url = Column(String, nullable=True)
     image_data = Column(String, nullable=True)
+    image_mime = Column(String, nullable=True)
     image_size = Column(Integer, nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, server_default=func.now())
