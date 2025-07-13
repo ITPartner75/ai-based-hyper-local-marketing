@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from app.models.business_details import *
 from app.schemas.business import BusinessDetailsOut, MediaBase, ContactBase
-from app.util.webscrap import get_website_logo_bytes
+from app.util.webscrap import get_website_logo_bytes, get_website_products
 from app.util.file_utils import save_media_locally, save_product_locally
 from app.constants.business import ALLOWED_TYPES
 from fastapi.responses import StreamingResponse
@@ -128,6 +128,16 @@ def webscrap_logo(db: Session, business_id: int):
                 if logo_bytes:
                     buffer = BytesIO(logo_bytes)
                     return StreamingResponse(buffer, media_type="application/octet-stream")
+    return None
+
+
+def webscrap_products(db: Session, business_id: int):
+    contact = get_contact(db=db, business_id=business_id)
+    if contact:
+        if hasattr(contact, "website"):
+            if contact.website not in [None, ""]:
+                products = get_website_products(url=contact.website)
+                return products
     return None
 
 # def update_media(db: Session, business_id: int, data):

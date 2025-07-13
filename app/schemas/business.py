@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 from fastapi import UploadFile, File
+from dataclasses import dataclass
 
 class BusinessBase(BaseModel):
     business_name: str
@@ -132,3 +133,10 @@ class ProductOut(BaseModel):
     model_config = {
         "from_attributes": True  # ✅ Enables `.from_orm()` in Pydantic v2
     }
+
+@dataclass
+class Product:
+    name: str
+    price: float
+    description: Optional[str] = None
+    image_data: Optional[str] = None

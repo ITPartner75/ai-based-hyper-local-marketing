@@ -99,6 +99,13 @@ def webscrap_logo(business_id: int, db: Session = Depends(get_db), user=Depends(
         raise HTTPException(status_code=404, detail="Logo not found")
     return logo
 
+@router.get("/webscrap/products/{business_id}")
+def webscrap_products(business_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)):
+    products = business_crud.webscrap_products(db=db, business_id=int(business_id))
+    if not products:
+        raise HTTPException(status_code=404, detail="Products not found")
+    return products
+
 # @router.get("/media/{business_id}/{field_name}")
 # def stream_media_field(business_id: int, field_name: str, db: Session = Depends(get_db), user=Depends(get_current_user)):
 #     media = business_crud.get_media(db=db, business_id=int(business_id), field_name=field_name)
