@@ -115,25 +115,45 @@ def webscrap_products(business_id: int, db: Session = Depends(get_db), user=Depe
 #         raise HTTPException(status_code=400, detail="Invalid media field")
 #     return media
 
-@router.post("/media/file/upload", response_model=MediaFileOut)
+@router.post("/media/file/upload", response_model=List[MediaFileOut])
 def upload_media_file(
     business_id: int = Form(...),
     file_type: str = Form(...),
-    file: UploadFile = File(...),
+    files: List[UploadFile] = File(...),
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
-    uploaded = business_crud.upload_media_file(db=db, 
-                                               business_id=business_id,
-                                               file_type=file_type,
-                                               file=file)
-    if isinstance(uploaded, str) and uploaded.lower() == "not_found":
-        raise HTTPException(status_code=404, detail="Media not found")
-    elif isinstance(uploaded, str) and uploaded.lower() == "invalid_file_type":
-        raise HTTPException(status_code=400, detail=f"Invalid file_type. Allowed: {ALLOWED_TYPES}")
-    if not uploaded:
-        raise HTTPException(status_code=500, detail=f"Unable to upload file type: {file_type}")
-    return uploaded
+    uploaded_files = []
+    errors = []
+
+    for file in files:
+        result = business_crud.upload_media_file(
+            db=db,
+            business_id=business_id,
+            file_type=file_type,
+            file=file
+        )
+        
+        if isinstance(result, str):
+            result_lower = result.lower()
+            if result_lower == "not_found":
+                errors.append(f"{file.filename}: Media not found")
+            elif result_lower == "invalid_file_type":
+                errors.append(f"{file.filename}: Invalid file_type. Allowed: {ALLOWED_TYPES}")
+            else:
+                errors.append(f"{file.filename}: Unknown error")
+        elif not result:
+            errors.append(f"{file.filename}: Upload failed")
+        else:
+            uploaded_files.append(result)
+
+    if errors:
+        raise HTTPException(
+            status_code=400,
+            detail={"message": "One or more uploads failed", "errors": errors}
+        )
+
+    return uploaded_files
 
 # @router.put("/media/{business_id}", response_model=MediaOut)
 # def update_media(business_id: int, data: MediaUpdate, db: Session = Depends(get_db), user=Depends(get_current_user)):
