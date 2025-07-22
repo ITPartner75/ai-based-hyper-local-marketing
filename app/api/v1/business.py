@@ -106,6 +106,13 @@ def webscrap_products(business_id: int, db: Session = Depends(get_db), user=Depe
         raise HTTPException(status_code=404, detail="Products not found")
     return products
 
+@router.get("/webscrap/images/{business_id}")
+def webscrap_images(business_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)):
+    images_zip = business_crud.webscrap_images(db=db, business_id=int(business_id))
+    if not images_zip:
+        raise HTTPException(status_code=404, detail="Images not found")
+    return images_zip
+
 # @router.get("/media/{business_id}/{field_name}")
 # def stream_media_field(business_id: int, field_name: str, db: Session = Depends(get_db), user=Depends(get_current_user)):
 #     media = business_crud.get_media(db=db, business_id=int(business_id), field_name=field_name)
@@ -119,7 +126,7 @@ def webscrap_products(business_id: int, db: Session = Depends(get_db), user=Depe
 def upload_media_file(
     business_id: int = Form(...),
     file_type: str = Form(...),
-    files: List[UploadFile] = File(...),
+    files: List[UploadFile] = File(..., description="Upload one or more files"),
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):

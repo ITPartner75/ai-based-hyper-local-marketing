@@ -54,14 +54,17 @@ class MediaOut(MediaBase):
         "from_attributes": True  # ✅ Enables `.from_orm()` in Pydantic v2
     }
 
-class MediaFileOut(BaseModel):
-    id: int
+
+class MediaFileDetails(BaseModel):
     file_url: str
     file_name: str
-    file_type: str
-    file_data: Optional[str]
-    mime_type: Optional[str] = None
+    file_data: str
+    mime_type: str
     file_size: Optional[int] = None
+
+class MediaFileOut(MediaFileDetails):
+    id: int
+    file_type: str
     is_active: bool
 
     model_config = {

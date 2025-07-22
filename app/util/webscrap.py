@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from dataclasses import asdict
+from zipfile import ZipFile
 from app.schemas.business import Product
 
 def get_website_logo_bytes(url) -> bytes | None:
@@ -28,6 +29,35 @@ def get_website_logo_bytes(url) -> bytes | None:
 
         return None  # No logo found
 
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
+    
+def get_website_images(url):
+    try:
+        # Download images
+        image_paths = []
+        response = requests.get(url, timeout=10)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        for img in soup.find_all("img"):
+            src = img.get("src")
+            if src:
+                img_url = urljoin(url, src)
+                img_name = img_url.split("/")[-1].split("?")[0]
+                try:
+                    img_data = requests.get(img_url).content
+                    with open(img_name, "wb") as f:
+                        f.write(img_data)
+                    image_paths.append(img_name)
+                    print(f"Downloaded {img_name}")
+                except Exception as e:
+                    print(f"Error downloading {img_url}: {e}")
+        # Create ZIP
+        zip_filename = "images.zip"
+        with ZipFile(zip_filename, 'w') as zipf:
+            for img in image_paths:
+                zipf.write(img)
+        return zip_filename
     except Exception as e:
         print(f"Error: {e}")
         return None
@@ -69,9 +99,9 @@ def get_website_products(url) -> list[Product] | None:
                 description = desc_tag.get_text(strip=True) if desc_tag else None
                 price = price_tag.get_text(strip=True) if price_tag else None
                 image = img_tag['src'] if img_tag and img_tag.has_attr('src') else None
-                if name is not None or price is not None:
-                    product_obj = Product(name=name, description=description, price=price,image_data=image)
-                    products.append(asdict(product_obj))
+                # if name is not None or price is not None:
+                product_obj = Product(name=name, description=description, price=price,image_data=image)
+                products.append(asdict(product_obj))
         return products
     except Exception as e:
         print(f"Error: {e}")

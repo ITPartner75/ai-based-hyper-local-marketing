@@ -1,10 +1,11 @@
 from sqlalchemy.orm import Session
 from app.models.business_details import *
 from app.schemas.business import BusinessDetailsOut, MediaBase, ContactBase
-from app.util.webscrap import get_website_logo_bytes, get_website_products
+from app.util.webscrap import get_website_logo_bytes, get_website_products, get_website_images
 from app.util.file_utils import save_media_locally, save_product_locally
 from app.constants.business import ALLOWED_TYPES
 from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse
 from fastapi import UploadFile
 import base64
 from io import BytesIO
@@ -91,10 +92,10 @@ def upload_media_file(db: Session, business_id: int, file_type: str, file: Uploa
     # Save record in DB
     media_file = MediaFile(
         media_id=media.id,
-        file_url=file_info["relative_path"],
+        file_url=file_info["file_url"],
         file_name=file_info["file_name"],
-        file_data=base64.b64encode(file_info["file_data"]).decode("utf-8"),
-        # file_data=file_info["file_data"],
+        # file_data=base64.b64encode(file_info["file_data"]).decode("utf-8"),
+        file_data=file_info["file_data"],
         file_type=file_type,
         mime_type=file_info["mime_type"],
         file_size=file_info["file_size"]
@@ -138,6 +139,16 @@ def webscrap_products(db: Session, business_id: int):
             if contact.website not in [None, ""]:
                 products = get_website_products(url=contact.website)
                 return products
+    return None
+
+def webscrap_images(db: Session, business_id: int):
+    contact = get_contact(db=db, business_id=business_id)
+    if contact:
+        if hasattr(contact, "website"):
+            if contact.website not in [None, ""]:
+                images_zip = get_website_images(url=contact.website)
+                if images_zip:
+                    return FileResponse(images_zip, media_type='application/zip', filename="images.zip")
     return None
 
 # def update_media(db: Session, business_id: int, data):
