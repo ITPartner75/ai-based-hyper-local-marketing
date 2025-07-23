@@ -32,12 +32,12 @@ def run_migrations():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup logic
-    download_spacy_model()
     run_migrations()
     yield
     # Shutdown logic (optional)
 
 app = FastAPI()
+download_spacy_model()
 origins = [
     "http://localhost:5173",
     "http://0.0.0.0",
