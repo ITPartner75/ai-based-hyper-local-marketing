@@ -3,7 +3,7 @@ from app.models.business_details import *
 from app.schemas.business import BusinessDetailsOut, MediaBase, ContactBase
 from app.util.webscrap import get_website_logo_bytes, get_website_products, get_website_images
 from app.util.file_utils import save_media_locally, save_product_locally
-from app.util.ai_utils import CaptionImage, ClassifyImage
+# from app.util.ai_utils import CaptionImage, ClassifyImage
 from app.constants.business import ALLOWED_TYPES
 from fastapi.responses import StreamingResponse
 from fastapi.responses import FileResponse
