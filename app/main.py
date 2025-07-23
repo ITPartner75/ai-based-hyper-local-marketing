@@ -9,9 +9,9 @@ from app.db.base import Base  # This includes your models
 from app.api.v1.auth import router as auth_router
 from app.api.v1.business import router as business_router
 from pathlib import Path
-import spacy
-import subprocess
-import sys
+# import spacy
+# import subprocess
+# import sys
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
