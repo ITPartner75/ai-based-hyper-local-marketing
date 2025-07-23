@@ -9,9 +9,19 @@ from app.db.base import Base  # This includes your models
 from app.api.v1.auth import router as auth_router
 from app.api.v1.business import router as business_router
 from pathlib import Path
+import spacy
+import subprocess
+import sys
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+def download_spacy_model():
+    try:
+        spacy.load("en_core_web_sm")
+    except OSError:
+        print("Downloading 'en_core_web_sm' model...")
+        subprocess.check_call([sys.executable, "-m", "spacy", "download", "en_core_web_sm"])
 
 def run_migrations():
     print(str(BASE_DIR / "alembic.ini"))
@@ -22,6 +32,7 @@ def run_migrations():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup logic
+    download_spacy_model()
     run_migrations()
     yield
     # Shutdown logic (optional)
