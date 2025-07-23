@@ -8,7 +8,10 @@ from app.schemas.business import Product
 def get_website_logo_bytes(url) -> bytes | None:
     try:
         # Get the HTML content of the website
-        response = requests.get(url, timeout=10)
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+        }
+        response = requests.get(url, headers=headers, timeout=10)
         response.raise_for_status()
         soup = BeautifulSoup(response.text, 'html.parser')
 
@@ -33,11 +36,14 @@ def get_website_logo_bytes(url) -> bytes | None:
         print(f"Error: {e}")
         return None
     
-def get_website_images(url):
+def get_website_images(url, zip=True):
     try:
         # Download images
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+        }
         image_paths = []
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, headers=headers, timeout=10)
         soup = BeautifulSoup(response.text, 'html.parser')
         for img in soup.find_all("img"):
             src = img.get("src")
@@ -48,10 +54,13 @@ def get_website_images(url):
                     img_data = requests.get(img_url).content
                     with open(img_name, "wb") as f:
                         f.write(img_data)
-                    image_paths.append(img_name)
-                    print(f"Downloaded {img_name}")
+                    if "logo" not in img_name.lower():
+                        image_paths.append(img_name)
+                        print(f"Downloaded {img_name}")
                 except Exception as e:
                     print(f"Error downloading {img_url}: {e}")
+        if not zip:
+            return image_paths
         # Create ZIP
         zip_filename = "images.zip"
         with ZipFile(zip_filename, 'w') as zipf:
