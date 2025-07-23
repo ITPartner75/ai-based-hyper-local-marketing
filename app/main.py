@@ -16,12 +16,12 @@ import sys
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-def download_spacy_model():
-    try:
-        spacy.load("en_core_web_sm")
-    except OSError:
-        print("Downloading 'en_core_web_sm' model...")
-        subprocess.check_call([sys.executable, "-m", "spacy", "download", "en_core_web_sm"])
+# def download_spacy_model():
+#     try:
+#         spacy.load("en_core_web_sm")
+#     except OSError:
+#         print("Downloading 'en_core_web_sm' model...")
+#         subprocess.check_call([sys.executable, "-m", "spacy", "download", "en_core_web_sm"])
 
 def run_migrations():
     print(str(BASE_DIR / "alembic.ini"))
@@ -37,7 +37,7 @@ async def lifespan(app: FastAPI):
     # Shutdown logic (optional)
 
 app = FastAPI()
-download_spacy_model()
+# download_spacy_model()
 origins = [
     "http://localhost:5173",
     "http://0.0.0.0",
