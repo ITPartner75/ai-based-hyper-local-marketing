@@ -1,11 +1,11 @@
 from sqlalchemy.orm import Session
 from app.models.business_details import *
 from app.schemas.business import BusinessDetailsOut, MediaBase, ContactBase
-from app.util.webscrap import get_website_logo_bytes, get_website_products, get_website_images
+from app.util.webscrap import get_website_logo_bytes, get_website_images
 from app.util.file_utils import save_media_locally, save_product_locally
-# from app.util.ai_utils import CaptionImage, ClassifyImage
+from app.util.ai_utils import SellableImageClassifier
 from app.constants.business import ALLOWED_TYPES
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, Response
 from fastapi.responses import FileResponse
 from fastapi import UploadFile
 import base64
@@ -126,10 +126,13 @@ def webscrap_logo(db: Session, business_id: int):
     if contact:
         if hasattr(contact, "website"):
             if contact.website not in [None, ""]:
-                logo_bytes = get_website_logo_bytes(url=contact.website)
+                logo_bytes, mime_type = get_website_logo_bytes(url=contact.website)
+                print(logo_bytes, mime_type)
                 if logo_bytes:
                     buffer = BytesIO(logo_bytes)
-                    return StreamingResponse(buffer, media_type="application/octet-stream")
+                    return StreamingResponse(buffer, media_type=mime_type)
+                    # return Response(content=logo_bytes, media_type=mime_type)
+
     return None
 
 # def predict_products_from_website(db: Session, business_id: int):
@@ -153,25 +156,14 @@ def webscrap_logo(db: Session, business_id: int):
 
 
 def webscrap_products(db: Session, business_id: int):
+    business = get_business(db=db, business_id=business_id)
     contact = get_contact(db=db, business_id=business_id)
     if contact:
         if hasattr(contact, "website"):
             if contact.website not in [None, ""]:
-                # images = get_website_images(url=contact.website, zip=False)
-                # print(f"images: {images}")
-                # classified_images = ClassifyImage().classify_images(images)
-                # print(classified_images)
-                # sending_images_for_caption = []
-                # for data in classified_images:
-                #     print(f"data: {data}")
-                #     if data["is_valid"]:
-                #         sending_images_for_caption.append(data["image"])
-                # if len(sending_images_for_caption)>0:
-                #     image_captions = CaptionImage().captionize_images(sending_images_for_caption)
-                #     print(image_captions)
-                #     return image_captions
-                products = get_website_products(url=contact.website)
-                return products
+                classifier = SellableImageClassifier(business.business_category)
+                results = classifier.process(contact.website)
+                return results
     return None
 
 def webscrap_images(db: Session, business_id: int):

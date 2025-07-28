@@ -1,5 +1,5 @@
 # util/file_utils.py
-import os, base64
+import os, base64, filetype
 from uuid import uuid4
 from fastapi import UploadFile
 from mimetypes import guess_type
@@ -8,6 +8,10 @@ from app.schemas.business import MediaFileDetails
 
 MEDIA_UPLOAD_DIR = os.path.join(ROOT_DIR, MEDIA_FILES)
 PRODUCT_UPLOAD_DIR = os.path.join(ROOT_DIR, PRODUCT_FILES)
+
+def get_mime_type_from_bytes(data: bytes):
+    kind = filetype.guess(data)
+    return kind.mime if kind else "application/octet-stream"
 
 def save_media_locally(upload_file: UploadFile) -> dict:
     os.makedirs(MEDIA_UPLOAD_DIR, exist_ok=True)

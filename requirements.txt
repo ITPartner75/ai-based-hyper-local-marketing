@@ -13,9 +13,13 @@ pydantic-settings
 beautifulsoup4
 alembic
 python-multipart
-# torch
-# torchvision
-# pillow
+torch
+torchvision
+pillow
 # git+https://github.com/openai/CLIP.git
-# transformers
+transformers
 # spacy
+filetype
+sentencepiece
+huggingface_hub[hf_xnet]
+langdetect
