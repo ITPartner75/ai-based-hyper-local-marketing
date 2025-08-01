@@ -304,6 +304,7 @@ class Worker(Process):
                     self.result_queue.put({
                         "image_url": image_url,
                         "image_mime": mime,
+                        "name": final_caption,
                         "description": final_caption,
                         "classification": final_label,
                         "is_valid": True
@@ -342,6 +343,15 @@ class SellableImageClassifier:
         "auto repair": ["mechanic", "vehicle service", "car repair", "garage repair", "oil change", "tire replacement", "car engine repair"]
     }
 
+    active_workers = []
+
+    def shutdown_previous_workers(self):
+        for w in SellableImageClassifier.active_workers:
+            if w.is_alive():
+                logger.warning(f"Shutting down leftover worker {w.name}")
+                w.terminate()
+        SellableImageClassifier.active_workers.clear()
+
     def __init__(self, business_type: str, device: str = "cpu"):
         self.business_type = business_type.lower()
         self.device = device
@@ -356,15 +366,17 @@ class SellableImageClassifier:
 
         task_queue = Queue()
         result_queue = Queue()
-        num_workers = min(cpu_count(), len(image_urls), 5)
+        num_workers = min(cpu_count(), len(image_urls), 4)
         logger.info(f"Using {num_workers} worker(s)")
+
+        self.shutdown_previous_workers()
 
         # Start workers
         workers = [Worker(task_queue, result_queue, self.business_type, self.device) for _ in range(num_workers)]
         for w in workers:
             w.daemon = True  # Optional: terminates them when main process exits
             w.start()
-
+        SellableImageClassifier.active_workers.extend(workers)
         # Send image tasks
         for url in image_urls:
             task_queue.put(url)
@@ -378,7 +390,7 @@ class SellableImageClassifier:
         start_time = time.time()
         while received < expected:
             try:
-                result = result_queue.get(timeout=60)  # seconds
+                result = result_queue.get(timeout=120)  # seconds
                 received += 1
                 if result.get("is_valid"):
                     results.append(result)
@@ -389,7 +401,7 @@ class SellableImageClassifier:
                 # Try to collect more results until timeout or all are collected
                 break
 
-            # Safety: Hard timeout (e.g., 2 minutes)
+            # Safety: Hard timeout (e.g., 5 minutes)
             if time.time() - start_time > 300:
                 logger.error("Global timeout: processing took too long.")
                 break
@@ -400,6 +412,7 @@ class SellableImageClassifier:
             if w.is_alive():
                 logger.warning(f"Worker {w.name} did not exit properly. Terminating...")
                 w.terminate()
+        SellableImageClassifier.active_workers.clear()
 
         logger.info(f"Valid sellable images: {len(results)}")
         return results

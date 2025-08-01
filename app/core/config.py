@@ -18,6 +18,20 @@ class Settings(BaseSettings):
     apikey: str = os.getenv("APIKEY")
     senderid: str = os.getenv("SENDERID")
     sender_number: str = os.getenv("SENDER_NUMBER")
+    FB_CLIENT_ID: str = os.getenv("FB_CLIENT_ID")
+    FB_CLIENT_SECRET: str = os.getenv("FB_CLIENT_SECRET")
+    FB_REDIRECT_URI: str = os.getenv("FB_REDIRECT_URI")
+    FB_AUTH_BASE: str = "https://www.facebook.com/v18.0/dialog/oauth"
+    FB_TOKEN_URL: str = "https://graph.facebook.com/v18.0/oauth/access_token"
+    GRAPH_API_BASE: str = "https://graph.facebook.com/v18.0"
+    GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID")
+    GOOGLE_CLIENT_SECRET: str = os.getenv("GOOGLE_CLIENT_SECRET")
+    GOOGLE_REDIRECT_URI: str = os.getenv("GOOGLE_REDIRECT_URI")
+
+    GOOGLE_AUTH_URL: str = "https://accounts.google.com/o/oauth2/v2/auth"
+    GOOGLE_TOKEN_URL: str = "https://oauth2.googleapis.com/token"
+    BUSINESS_PROFILE_API: str = "https://mybusinessbusinessinformation.googleapis.com/v1"
+
 
     class Config:
         env_file = "app/.env"

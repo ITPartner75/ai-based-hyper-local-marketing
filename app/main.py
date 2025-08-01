@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse, JSONResponse
 from contextlib import asynccontextmanager
 from alembic.config import Config
 from alembic import command
@@ -8,6 +9,7 @@ from app.db.session import engine
 from app.db.base import Base  # This includes your models
 from app.api.v1.auth import router as auth_router
 from app.api.v1.business import router as business_router
+from app.api.v1.social_media import router as social_media_router
 from pathlib import Path
 # import spacy
 # import subprocess
@@ -41,6 +43,8 @@ app = FastAPI()
 origins = [
     "http://localhost:5173",
     "http://0.0.0.0",
+    "http://localhost:5000",
+    "http://app.glok.ai:5000",
     "http://14.99.81.62:5173",
     "http://192.168.77.8:5173",
     "https://glokai.netlify.app",
@@ -61,7 +65,8 @@ def startup():
     Base.metadata.create_all(bind=engine)
 
 # ✅ Include routes
-app.include_router(auth_router, prefix="/api/v1/auth")
+app.include_router(auth_router, prefix="/api/v1/auth", tags=["User Authentication"])
 app.include_router(business_router, prefix="/api/v1", tags=["Business"])
+app.include_router(social_media_router, prefix="/api/v1/social_media", tags=["Social Media"])
 app.mount("/uploads", StaticFiles(directory="app/uploads"), name="uploads")
 
