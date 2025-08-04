@@ -107,7 +107,6 @@ class SellableImageClassifier:
             if task_id:
                 progress = int((idx + 1) / total * 100)
                 task_manager.update(task_id, progress=progress)
-
         return results
 
     def process_image(self, image_url: str) -> dict:
