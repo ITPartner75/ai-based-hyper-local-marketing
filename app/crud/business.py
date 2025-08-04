@@ -1,13 +1,15 @@
 from sqlalchemy.orm import Session
 from app.models.business_details import *
 from app.schemas.business import BusinessDetailsOut, MediaBase, ContactBase
-from app.util.webscrap import get_website_logo_bytes, get_website_images
+from app.util.webscrap import get_website_logo_bytes, get_website_images, get_website_image_urls
 from app.util.file_utils import save_media_locally, save_product_locally
 from app.util.ai_utils import SellableImageClassifier
 from app.constants.business import ALLOWED_TYPES
+from app.services.task_manager import task_manager
 from fastapi.responses import StreamingResponse, Response
 from fastapi.responses import FileResponse
 from fastapi import UploadFile
+
 import base64
 from io import BytesIO
 
@@ -153,6 +155,37 @@ def webscrap_logo(db: Session, business_id: int):
 #                     print(image_captions)
 #                 return image_captions
 #     return None
+def run_scraping_task(task_id: str, db: Session, business_id: int):
+    try:
+        # Step 1: Get business and contact info
+        business = get_business(db, business_id)
+        if not business:
+            task_manager.update(task_id, status="failed", error="Business not found.")
+            return
+
+        contact = get_contact(db, business_id)
+        if not contact or not contact.website:
+            task_manager.update(task_id, status="failed", error="Website not found.")
+            return
+
+        # Step 2: Create classifier and start task
+        task_manager.update(task_id, status="starting", progress=0)
+        classifier = SellableImageClassifier(business.business_category)
+
+        # Step 3: Process all images from the website
+        results = classifier.process(contact.website, task_id=task_id)
+
+        # Step 4: Complete task
+        task_manager.update(task_id, status="completed", progress=100, result=results)
+
+    except Exception as e:
+        task_manager.update(
+            task_id,
+            status="failed",
+            error=str(e),
+            progress=0
+        )
+
 
 
 def webscrap_products(db: Session, business_id: int):

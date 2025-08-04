@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, BackgroundTasks
 from sqlalchemy.orm import Session
 from app.db.base import get_db
 from app.core.security import get_current_user
@@ -6,6 +6,7 @@ from app.schemas.business import *
 # from schemas.combined_details import MediaCreate, ContactCreate, BusinessDetailsCreate
 from app.crud import business as business_crud
 from app.constants.business import ALLOWED_TYPES
+from app.services.task_manager import task_manager
 from typing import List, Union
 
 router = APIRouter()
@@ -99,12 +100,32 @@ def webscrap_logo(business_id: int, db: Session = Depends(get_db), user=Depends(
         raise HTTPException(status_code=404, detail="Logo not found")
     return logo
 
+# @router.get("/webscrap/products/{business_id}")
+# def webscrap_products(business_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)):
+#     products = business_crud.webscrap_products(db=db, business_id=int(business_id))
+#     if not products:
+#         raise HTTPException(status_code=404, detail="Products not found")
+#     return products
+
 @router.get("/webscrap/products/{business_id}")
-def webscrap_products(business_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)):
-    products = business_crud.webscrap_products(db=db, business_id=int(business_id))
-    if not products:
-        raise HTTPException(status_code=404, detail="Products not found")
-    return products
+def start_scraping_task(
+    business_id: int,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    task_id = task_manager.create_task()
+    background_tasks.add_task(business_crud.run_scraping_task, task_id, db, business_id)
+    return {"task_id": task_id, "status": "started"}
+
+
+@router.get("/webscrap/status/{task_id}")
+def check_scraping_status(task_id: str):
+    task = task_manager.get(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return task
+
 
 @router.get("/webscrap/images/{business_id}")
 def webscrap_images(business_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)):
