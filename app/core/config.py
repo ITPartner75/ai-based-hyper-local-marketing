@@ -31,6 +31,8 @@ class Settings(BaseSettings):
     GOOGLE_AUTH_URL: str = "https://accounts.google.com/o/oauth2/v2/auth"
     GOOGLE_TOKEN_URL: str = "https://oauth2.googleapis.com/token"
     BUSINESS_PROFILE_API: str = "https://mybusinessbusinessinformation.googleapis.com/v1"
+    OPEN_ROUTER_API_KEY: str = os.getenv("OPEN_ROUTER_API_KEY")
+    OPEN_ROUTER_API: str = "https://openrouter.ai/api/v1/chat/completions"
 
 
     class Config:

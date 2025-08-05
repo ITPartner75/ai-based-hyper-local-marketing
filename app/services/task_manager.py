@@ -40,6 +40,13 @@ class TaskManager:
                 tid: task for tid, task in self.tasks.items()
                 if task["status"] == "pending" or task["updated_at"] > cutoff
             }
+    
+    def delete_task(self, task_id: str):
+        with self.lock:
+            if task_id in self.tasks:
+                del self.tasks[task_id]
+                return True
+            return False
 
 # Singleton
 task_manager = TaskManager()

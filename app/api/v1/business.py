@@ -287,6 +287,12 @@ def delete_product(product_id: int, db: Session = Depends(get_db), user=Depends(
         raise HTTPException(status_code=404, detail="Product not found")
     return {"detail": "Product deleted"}
 
+@router.post("/generate-insights/{business_id}")
+def generate_insights(business_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)):
+    insights = business_crud.generate_insights(db=db, business_id=int(business_id))
+    return insights
+
+
 # # COMBINED DETAILS (MEDIA, CONTACT, BUSINESS_DETAILS)
 
 # @router.post("/business-details")

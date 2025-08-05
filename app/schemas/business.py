@@ -143,3 +143,11 @@ class Product:
     price: float
     description: Optional[str] = None
     image_data: Optional[str] = None
+
+class BusinessInsights(BaseModel):
+    business_name: str
+    business_category: str
+    website: str
+    social_media_profiles: str
+    city_area: str
+    geographic_coordinates: Optional[str] = None

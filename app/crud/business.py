@@ -1,9 +1,9 @@
 from sqlalchemy.orm import Session
 from app.models.business_details import *
-from app.schemas.business import BusinessDetailsOut, MediaBase, ContactBase
+from app.schemas.business import BusinessDetailsOut, MediaBase, ContactBase, BusinessInsights
 from app.util.webscrap import get_website_logo_bytes, get_website_images, get_website_image_urls
 from app.util.file_utils import save_media_locally, save_product_locally
-from app.util.ai_utils import SellableImageClassifier
+from app.util.ai_utils import SellableImageClassifier, BusinessInsightGenerator
 from app.constants.business import ALLOWED_TYPES
 from app.services.task_manager import task_manager
 from fastapi.responses import StreamingResponse, Response
@@ -161,11 +161,13 @@ def run_scraping_task(task_id: str, db: Session, business_id: int):
         business = get_business(db, business_id)
         if not business:
             task_manager.update(task_id, status="failed", error="Business not found.")
+            task_manager.delete_task(task_id)
             return
 
         contact = get_contact(db, business_id)
         if not contact or not contact.website:
             task_manager.update(task_id, status="failed", error="Website not found.")
+            task_manager.delete_task(task_id)
             return
 
         # Step 2: Create classifier and start task
@@ -185,6 +187,7 @@ def run_scraping_task(task_id: str, db: Session, business_id: int):
             error=str(e),
             progress=0
         )
+    task_manager.delete_task(task_id)
 
 
 
@@ -395,3 +398,14 @@ def delete_product(db: Session, product_id: int):
     if product:
         update_db(db=db, model=product, field="is_active", value=False)
     return product
+
+def generate_insights(db: Session, business_id: int):
+    business = get_business(db=db, business_id=business_id)
+    contact = get_contact(db=db, business_id=business_id)
+    details = BusinessInsights(business_name=business.business_name,
+                               business_category=business.business_category,
+                               website=contact.website,
+                               social_media_profiles=contact.social_media,
+                               city_area=contact.address)
+    insights = BusinessInsightGenerator(details).process()
+    return insights
