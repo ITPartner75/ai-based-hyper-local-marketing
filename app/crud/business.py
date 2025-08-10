@@ -228,6 +228,23 @@ def get_media_files(db: Session, media_id: int):
                                    MediaFile.is_active == True).all()
     return media_files
 
+def delete_media_file(db: Session, 
+                      business_id: int,
+                      media_file_id: int):
+    media = get_media(db=db, business_id=business_id)
+    if not media:
+        return None
+    
+    media_file = db.query(MediaFile).filter(MediaFile.id == media_file_id,
+                                   MediaFile.is_active == True).first()
+    if not media_file:
+        return None
+    
+    if media_file.media_id == media.id:
+        update_db(db=db, model=media_file, field="is_active", value=False)
+        return media_file
+    return None
+
 def delete_media(db: Session, business_id: int):
     media = get_media(db=db, business_id=business_id)
     if not media:

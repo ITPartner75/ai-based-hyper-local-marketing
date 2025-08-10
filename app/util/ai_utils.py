@@ -71,7 +71,10 @@ class SellableImageClassifier:
         self.business_type = business_type.lower()
         self.device = device
         self.caption_processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
-        self.caption_model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base").to(self.device)
+        self.caption_model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base",
+                                                                          device_map="auto",               # spreads layers across devices
+                                                                          torch_dtype=torch.float16,       # saves VRAM
+                                                                          low_cpu_mem_usage=True)
         self.classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
 
     def extract_caption_from_filename(self, image_url: str) -> str | None:
@@ -142,6 +145,7 @@ class SellableImageClassifier:
                     use_model_caption = False
                     return {
                         "image_url": image_url,
+                        "image_data": base64.b64encode(image_bytes),
                         "image_mime": mime,
                         "name": caption,
                         "description": caption,
@@ -166,6 +170,7 @@ class SellableImageClassifier:
 
                 return {
                     "image_url": image_url,
+                    "image_data": base64.b64encode(image_bytes),
                     "image_mime": mime,
                     "name": caption,
                     "description": caption,

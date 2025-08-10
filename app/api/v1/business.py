@@ -198,6 +198,15 @@ def delete_media(business_id: int, db: Session = Depends(get_db), user=Depends(g
         raise HTTPException(status_code=404, detail="Media not found")
     return {"detail": "Media deleted"}
 
+@router.delete("/mediafile/{business_id}/{media_file_id}")
+def delete_media_file(business_id: int, media_file_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)):
+    deleted = business_crud.delete_media_file(db=db, 
+                                              business_id=int(business_id), 
+                                              media_file_id=int(media_file_id))
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Media file not found")
+    return {"detail": "Media file deleted"}
+
 #Business Details
 @router.post("/business/details/{business_id}", response_model=BusinessDetailsOut)
 def create_business_details(business_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)):

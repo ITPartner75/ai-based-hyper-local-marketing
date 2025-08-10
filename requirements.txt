@@ -25,3 +25,4 @@ huggingface_hub[hf_xnet]
 langdetect
 httpx
 authlib
+accelerate
