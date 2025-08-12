@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 from fastapi import UploadFile, File
@@ -72,11 +72,27 @@ class MediaFileOut(MediaFileDetails):
     }
 
 #Contact
+class SocialMediaModel(BaseModel):
+    facebook: Optional[str] = None
+    instagram: Optional[str] = None
+    google_business: Optional[str] = None
+
+class LocationModel(BaseModel):
+    city: Optional[str] = None
+    state: Optional[str] = None
+    country: Optional[str] = None
+    postal_code: Optional[str] = None
+    coordinates: Optional[str] = None
+
 class ContactBase(BaseModel):
     email: Optional[str] = None
     phone: Optional[str] = None
-    address: Optional[str] = None
-    social_media: Optional[str] = None
+    address: Optional[LocationModel] = Field(
+        default_factory=LocationModel
+    )
+    social_media: Optional[SocialMediaModel] = Field(
+        default_factory=SocialMediaModel
+    )
     website: Optional[str] = None
 
     model_config = {
@@ -144,10 +160,12 @@ class Product:
     description: Optional[str] = None
     image_data: Optional[str] = None
 
+
 class BusinessInsights(BaseModel):
     business_name: str
     business_category: str
     website: str
-    social_media_profiles: str
-    city_area: str
-    geographic_coordinates: Optional[str] = None
+    social_media_profiles: Optional[SocialMediaModel] = Field(
+        default_factory=SocialMediaModel
+    )
+    location: LocationModel

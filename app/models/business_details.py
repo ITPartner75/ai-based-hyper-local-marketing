@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, Integer, String, DateTime, ForeignKey, Float, LargeBinary
+from sqlalchemy import Boolean, Column, Integer, String, DateTime, ForeignKey, Float, JSON, LargeBinary
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -62,8 +62,27 @@ class Contact(Base):
     business_id = Column(Integer, ForeignKey("business.id"), nullable=False)
     email = Column(String, nullable=True)
     phone = Column(String, nullable=True)
-    address = Column(String, nullable=True)
-    social_media = Column(String, nullable=True)
+    address = Column(
+        JSON,
+        nullable=True,
+        default=lambda: {
+            "city": None,
+            "state": None,
+            "country": None,
+            "postal_code": None,
+            "coordinates": None
+        }
+    )
+    # social_media = Column(String, nullable=True)
+    social_media = Column(
+        JSON,
+        nullable=True,
+        default=lambda: {
+            "facebook": None,
+            "instagram": None,
+            "google_business": None
+        }
+    )
     website = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, server_default=func.now())

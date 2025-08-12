@@ -1,16 +1,17 @@
+# Use a lightweight Python base image
+FROM python:3.11-slim
 
-FROM python:3.9
+# Set working directory inside container
+WORKDIR /app
 
-
-WORKDIR /HYPER-LOCAL-MARKETING
-
-COPY ./requirements.txt /HYPER-LOCAL-MARKETING/requirements.txt
-
-COPY ./app /HYPER-LOCAL-MARKETING/app
-
-
-RUN pip install --no-cache-dir --upgrade -r /HYPER-LOCAL-MARKETING/requirements.txt
+COPY ai-based-hyper-local-marketing .
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
 
-# CMD ["fastapi", "run", "app/main.py", "--port", "5000"]
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5000"]
+
+# Expose the port your app runs on
+EXPOSE 5000
+
+# Run the app
+CMD ["python3", "run.py"]

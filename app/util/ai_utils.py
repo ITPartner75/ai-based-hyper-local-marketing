@@ -72,10 +72,11 @@ class SellableImageClassifier:
         self.device = device
         self.caption_processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
         self.caption_model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base",
-                                                                          device_map="auto",               # spreads layers across devices
-                                                                          torch_dtype=torch.float16,       # saves VRAM
-                                                                          low_cpu_mem_usage=True)
-        self.classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
+                                                                        #   device_map="auto",               # spreads layers across devices
+                                                                          torch_dtype=torch.float32,       # saves VRAM
+                                                                          low_cpu_mem_usage=True).to("cpu")
+        # self.caption_model.to(self.device)
+        self.classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli", device=-1)
 
     def extract_caption_from_filename(self, image_url: str) -> str | None:
         try:
@@ -199,10 +200,10 @@ class BusinessInsightGenerator:
         **BUSINESS CONTEXT**:
         - Business Name: {self.details.business_name}
         - Category: {self.details.business_category}
-        - Geographic Coordinates: {self.details.geographic_coordinates or "Not Available"}
+        - Geographic Coordinates: {self.details.location.coordinates if self.details.location.coordinates else "Not Available"}
         - Website: {self.details.website}
         - Social Media Profiles: {self.details.social_media_profiles}
-        - City/Area: {self.details.city_area}
+        - City/Area: {self.details.location.city if self.details.location.city else "Not Available"}
 
         **DUAL-PURPOSE RESEARCH MANDATE**: 
         Generate comprehensive business intelligence that serves both strategic decision-making and marketing execution. Apply structured analytical frameworks while ensuring insights are actionable for marketing teams.

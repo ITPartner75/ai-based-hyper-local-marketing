@@ -6,6 +6,7 @@ from app.util.file_utils import save_media_locally, save_product_locally
 from app.util.ai_utils import SellableImageClassifier, BusinessInsightGenerator
 from app.constants.business import ALLOWED_TYPES
 from app.services.task_manager import task_manager
+from app.services.google_business import get_all_locations_from_google_business
 from fastapi.responses import StreamingResponse, Response
 from fastapi.responses import FileResponse
 from fastapi import UploadFile
@@ -128,12 +129,14 @@ def webscrap_logo(db: Session, business_id: int):
     if contact:
         if hasattr(contact, "website"):
             if contact.website not in [None, ""]:
-                logo_bytes, mime_type = get_website_logo_bytes(url=contact.website)
-                print(logo_bytes, mime_type)
-                if logo_bytes:
-                    buffer = BytesIO(logo_bytes)
-                    return StreamingResponse(buffer, media_type=mime_type)
-                    # return Response(content=logo_bytes, media_type=mime_type)
+                logo_data = get_website_logo_bytes(url=contact.website)
+                if logo_data:
+                    logo_bytes, mime_type = logo_data
+                    print(logo_bytes, mime_type)
+                    if logo_bytes:
+                        buffer = BytesIO(logo_bytes)
+                        return StreamingResponse(buffer, media_type=mime_type)
+                        # return Response(content=logo_bytes, media_type=mime_type)
 
     return None
 
@@ -161,13 +164,13 @@ def run_scraping_task(task_id: str, db: Session, business_id: int):
         business = get_business(db, business_id)
         if not business:
             task_manager.update(task_id, status="failed", error="Business not found.")
-            task_manager.delete_task(task_id)
+            # task_manager.delete_task(task_id)
             return
 
         contact = get_contact(db, business_id)
         if not contact or not contact.website:
             task_manager.update(task_id, status="failed", error="Website not found.")
-            task_manager.delete_task(task_id)
+            # task_manager.delete_task(task_id)
             return
 
         # Step 2: Create classifier and start task
@@ -187,7 +190,7 @@ def run_scraping_task(task_id: str, db: Session, business_id: int):
             error=str(e),
             progress=0
         )
-    task_manager.delete_task(task_id)
+    # task_manager.delete_task(task_id)
 
 
 
@@ -423,6 +426,6 @@ def generate_insights(db: Session, business_id: int):
                                business_category=business.business_category,
                                website=contact.website,
                                social_media_profiles=contact.social_media,
-                               city_area=contact.address)
+                               location=contact.address)
     insights = BusinessInsightGenerator(details).process()
     return insights
